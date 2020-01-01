@@ -1,6 +1,29 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+/// Extension of [CustomPainter] which exposes a method to translate global to local coordinates.
+abstract class GlobalCustomPainter extends CustomPainter {
+  GlobalCustomPainter({Listenable repaint}) : super(repaint: repaint);
+
+  RenderBox _renderObject;
+
+  /// Translates the screen coordinates in [offset] into coordinates which are local to the [Canvas]
+  /// passed to [GlobalCustomPainter.paint].
+  Offset globalToLocal(Offset offset) {
+    return _renderObject.globalToLocal(offset);
+  }
+
+  @override
+  @mustCallSuper
+  void paint(Canvas canvas, Size size) {
+    assert(
+    _renderObject != null,
+    'Please make sure this painter ($runtimeType) is used in an instance of GlobalCustomPaint.',
+    );
+  }
+}
+
+/// Use this [Widget] to paint a [GlobalCustomPaint].
 class GlobalCustomPaint extends CustomPaint {
   const GlobalCustomPaint({
     Key key,
@@ -60,15 +83,5 @@ class GlobalCustomPaint extends CustomPaint {
 
     painter?._renderObject = null;
     foregroundPainter?._renderObject = null;
-  }
-}
-
-abstract class GlobalCustomPainter extends CustomPainter {
-  GlobalCustomPainter({Listenable repaint}) : super(repaint: repaint);
-
-  RenderBox _renderObject;
-
-  Offset globalToLocal(Offset offset) {
-    return _renderObject.globalToLocal(offset);
   }
 }
