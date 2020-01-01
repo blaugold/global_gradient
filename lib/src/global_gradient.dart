@@ -50,7 +50,7 @@ _ColorsAndStops _interpolateColorsAndStops(
   return _ColorsAndStops(interpolatedColors, interpolatedStops);
 }
 
-/// Marker for adaptations of [Gradient]s which can be globally positioned.
+/// Base for adaptations of [Gradient]s which can be globally positioned.
 abstract class GlobalGradient extends Gradient {
   const GlobalGradient({
     List<Color> colors,
@@ -58,9 +58,20 @@ abstract class GlobalGradient extends Gradient {
     GradientTransform transform,
   }) : super(colors: colors, stops: stops, transform: transform);
 
+  /// Creates a [Shader] which can be used to paint this gradient.
+  ///
+  /// This method might return `null`, if this [Gradient] does not paint into [rect], and painting
+  /// should be skipped. [rect] is the bounding box of the area into which this gradient will be
+  /// painted, in local coordinates.
+  ///
+  /// [globalToLocal] cannot be `null`. It needs to translate the given screen coordinates into
+  /// local coordinates of the canvas in which the [Shader] will be used.
   @override
-  Shader createShader(Rect rect,
-      {TextDirection textDirection, Offset globalToLocal(Offset offset)});
+  Shader createShader(
+    Rect rect, {
+    TextDirection textDirection,
+    @required Offset globalToLocal(Offset offset),
+  });
 }
 
 /// This is an adaption of [RadialGradient], for use as a global gradient.
@@ -82,6 +93,7 @@ class GlobalRadialGradient extends GlobalGradient {
         assert(radius != null),
         assert(tileMode != null),
         assert(focalRadius != null),
+        diameter = radius * 2,
         super(colors: colors, stops: stops, transform: transform);
 
   /// The center of the gradient in global logical pixels.
@@ -89,6 +101,9 @@ class GlobalRadialGradient extends GlobalGradient {
 
   /// The radius of the gradient in logical pixels.
   final double radius;
+
+  /// The diameter of the gradient in logical pixels.
+  final double diameter;
 
   /// How this gradient should tile the plane beyond the outer ring at [radius]
   /// pixels from the [center].
@@ -120,10 +135,33 @@ class GlobalRadialGradient extends GlobalGradient {
   final double focalRadius;
 
   @override
-  Shader createShader(Rect rect,
-      {TextDirection textDirection, Offset globalToLocal(Offset offset)}) {
+  Shader createShader(
+    Rect rect, {
+    TextDirection textDirection,
+    Offset globalToLocal(Offset offset),
+  }) {
+    assert(globalToLocal != null);
+
+    final localCenter = globalToLocal(center);
+
+    if (rect != null) {
+      // This optimization only works for simple gradients without a focal point and with
+      // TileMode.clamp, because it works by assuming the gradient only paints in a circle centered
+      // at localCenter with the gradient's radius.
+      if (tileMode == TileMode.clamp && focal == null) {
+        // TODO use more specific check, which checks for collisions of a circle and rect.
+        final gradientRect = Rect.fromCenter(
+          center: localCenter,
+          width: diameter,
+          height: diameter,
+        );
+
+        if (!gradientRect.overlaps(rect)) return null;
+      }
+    }
+
     return ui.Gradient.radial(
-      globalToLocal == null ? center : globalToLocal(center),
+      localCenter,
       radius,
       colors,
       _impliedStops(),

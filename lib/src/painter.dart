@@ -22,20 +22,11 @@ class GlobalGradientBorderPainter extends GlobalCustomPainter {
 
     final bottomRight = size.bottomRight(Offset.zero);
     final rect = Rect.fromPoints(Offset.zero, bottomRight);
-
-    if (_gradient is GlobalRadialGradient) {
-      final gradientRect = Rect.fromCenter(
-        center: globalToLocal(_gradient.center),
-        width: _gradient.radius * 2,
-        height: _gradient.radius * 2,
-      );
-
-      if (!rect.overlaps(gradientRect)) return;
-    }
+    final shader = _gradient.createShader(rect, globalToLocal: globalToLocal);
+    if (shader == null) return;
 
     final strokeInset = EdgeInsets.all(width / 2);
     final borderRect = strokeInset.deflateRect(rect);
-    final shader = _gradient.createShader(rect, globalToLocal: globalToLocal);
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
