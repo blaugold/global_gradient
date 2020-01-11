@@ -44,9 +44,15 @@ class _SpotlightBorderDemoState extends State<SpotlightBorderDemo> {
         onExit: (event) {
           _updateSpotlight(null);
         },
-        child: GridView.extent(
-          maxCrossAxisExtent: 200,
-          children: items.map(_buildItem).toList(),
+        child: Align(
+          child: Container(
+            constraints: BoxConstraints(maxWidth: 600),
+            child: GridView.count(
+              crossAxisCount: 3,
+              shrinkWrap: true,
+              children: items.map(_buildItem).toList(),
+            ),
+          ),
         ),
       ),
     );
