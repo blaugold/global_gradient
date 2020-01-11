@@ -90,7 +90,7 @@ class _SpotlightBorderDemoState extends State<SpotlightBorderDemo> {
           decoration: BoxDecoration(
             border: Border.all(
               color: Colors.white.withOpacity(.5),
-              width: 0,
+              width: 1,
             ),
           ),
           child: Center(
