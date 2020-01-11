@@ -8,5 +8,5 @@ A Flutter package for creating visual effects with globally positioned gradients
 
 ## Usage
 
-[spotlight_border_demo.dart](https://github.com/blaugold/global_gradient/blob/master/examples/lib/spotlight_border_demo.dart)
+[spotlight_border_demo.dart](https://github.com/blaugold/global_gradient/blob/master/example/lib/spotlight_border_demo.dart)
 shows how this package can be used to create a spotlight effect at box borders.
